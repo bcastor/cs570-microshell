@@ -55,11 +55,26 @@ char **msh_tokenize_line(char *line){
     tokens[i] = NULL;
     return tokens;
 }
+/*
+this is to check if the file is in the current directory
+*/
+int checkdir(const char* filename) {
+    FILE* file;
+    if (file = fopen(filename, "r")) {
+        fclose(file);
+        return 1;
+    }
+    return 0;
 
+}
 int main(){
-
-
-
+    char username[] = "cssc2165% ";
+    char command[200];
+    int condition = 1;
+    while (condition = 1){
+        printf("%s", username);
+        scanf("%s\n", command);
+    }
     return 0;
 }
 
