@@ -71,9 +71,12 @@ int main(){
     char username[] = "cssc2165% ";
     char command[200];
     int condition = 1;
-    while (condition = 1){
+    do{
         printf("%s", username);
         scanf("%s\n", command);
+    }
+    while (condition = 1){
+
     }
     return 0;
 }
