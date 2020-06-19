@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 
 #define TOKEN_BUFFSIZE 64
@@ -65,7 +68,16 @@ int checkdir(const char* filename) {
         return 1;
     }
     return 0;
-
+}
+int checkexe(const char* filename){
+    char *symlinkpath = filename;
+    char actualpath [PATH_MAX+1];
+    char *ptr;
+    ptr = realpath(symlinkpath, actualpath);
+    if (stat(file, &sb) == 0 && sb.st_mode & S_IXUSR) 
+        return 1;
+    else  
+        return 0;
 }
 int main(){
     char username[] = "cssc2165% ";
@@ -74,9 +86,9 @@ int main(){
     do{
         printf("%s", username);
         scanf("%s\n", command);
+        /*condition = functions*/
     }
     while (condition = 1){
-
     }
     return 0;
 }
