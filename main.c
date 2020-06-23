@@ -7,7 +7,7 @@
 
 
 #define TOKEN_BUFFSIZE 64
-#define TOKEN_DELIM " \n"
+#define TOKEN_DELIM " |"
 
 
 /**
@@ -58,37 +58,77 @@ char **msh_tokenize_line(char *line){
     tokens[i] = NULL;
     return tokens;
 }
-/*
-this is to check if the file is in the current directory
-*/
-int checkdir(const char* filename) {
-    FILE* file;
-    if (file = fopen(filename, "r")) {
-        fclose(file);
+///*
+//this is to check if the file is in the current directory
+//*/
+//int checkdir(const char* filename) {
+//    FILE* file;
+//    if (file = fopen(filename, "r")) {
+//        fclose(file);
+//        return 1;
+//    }
+//    return 0;
+//}
+/**
+ * checks the string for character '|' and returns the
+ * instances in the given string
+ * @param line
+ * @return number of pipes
+ */
+int pipes_num(char *line){
+
+    int count = 0;
+    char p =  '|';
+
+    for(int i = 0; line[i] != '\0'; i++) {
+        if (p == line[i]) {
+            count++;
+        }
+    }
+
+    return count;
+}
+
+int execute(char **args, int pipes){
+
+    if(args[0] == NULL){
+        // nothing on the command line
         return 1;
     }
-    return 0;
-}
-int checkexe(const char* filename){
-    char *symlinkpath = filename;
-    char actualpath [PATH_MAX+1];
-    char *ptr;
-    ptr = realpath(symlinkpath, actualpath);
-    if (stat(file, &sb) == 0 && sb.st_mode & S_IXUSR) 
-        return 1;
-    else  
+
+    else if(strncmp(args[0],"exit",4) == 0){
+        // execute exit command
         return 0;
+    }
+
+    return 1;
 }
+//int checkexe(const char* filename){
+//    char *symlinkpath = filename;
+//    char actualpath [PATH_MAX+1];
+//    char *ptr;
+//    ptr = realpath(symlinkpath, actualpath);
+//    if (stat(file, &sb) == 0 && sb.st_mode & S_IXUSR)
+//        return 1;
+//    else
+//        return 0;
+//}
+
 int main(){
     char username[] = "cssc2165% ";
-    char command[200];
-    int condition = 1;
+    char *input;
+    char **commands;
+    int running;
+    int pipes;
     do{
         printf("%s", username);
-        scanf("%s\n", command);
-        /*condition = functions*/
+        input = msh_read();
+        pipes = pipes_num(input);
+        commands = msh_tokenize_line(input);
+        running = execute(commands,pipes);
+
     }
-    while (condition = 1){
+    while (running);{
     }
     return 0;
 }
