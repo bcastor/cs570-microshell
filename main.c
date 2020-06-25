@@ -6,9 +6,10 @@
 #include <unistd.h>
 
 
-#define TOKEN_BUFFSIZE 64
-#define TOKEN_DELIM " |"
+#define TOKEN_DELIM " \n\t"
 
+char *commands[100][100];
+int arguments = 0;
 
 /**
  * reads user input and returns it as output
@@ -37,26 +38,41 @@ char *msh_read(void){
  * by a delimiter and converts it to tokens
  *
  * @param line
- * @return tokens
+ * @return arguments
  */
 char **msh_tokenize_line(char *line){
 
-    int buff = TOKEN_BUFFSIZE;
     int i = 0;
-    //allocate memory for tokens
-    char **tokens = malloc(buff * sizeof(char*));
+
+    //clear array
+    memset(commands, 0, sizeof(commands[0][0]) * 100 * 100);
     char *token;
+    char *token2;
+
     //tokenize by delimiter
     token = strtok(line, TOKEN_DELIM);
+
+    token2 = token;
     //move each token into tokens
-    while (token != NULL){
-        tokens[i] = token;
-        i++;
-        token = strtok(NULL, TOKEN_DELIM);
+    while (token2 != NULL){
+
+        if(strcmp(token2,"|") != 0){
+
+            commands[arguments][i]  = token2;
+            i++;
+            token2 = strtok(NULL, TOKEN_DELIM);
+        }
+       else{//argument was found
+           commands[arguments][i] = NULL;
+           arguments++;
+           i = 0;
+           token2 = strtok(NULL, TOKEN_DELIM);
+       }
     }
 
-    tokens[i] = NULL;
-    return tokens;
+    commands[arguments][i] = NULL;
+
+    return commands;
 }
 ///*
 //this is to check if the file is in the current directory
@@ -75,33 +91,56 @@ char **msh_tokenize_line(char *line){
  * @param line
  * @return number of pipes
  */
-int pipes_num(char *line){
 
-    int count = 0;
-    char p =  '|';
 
-    for(int i = 0; line[i] != '\0'; i++) {
-        if (p == line[i]) {
-            count++;
+int execute(char *commands[100][100]){
+
+    pid_t pid;
+    int i = 0;
+    int fd[2];
+    int stat;
+    int f_in;
+
+    while(i <= arguments){
+
+        pipe(fd);
+        pid = fork();
+
+        if(pid != 0) {
+            //close once child ends process
+            waitpid(pid, &stat, 0);
+            close(fd[1]);
+            if (WIFEXITED(stat)) {
+
+                if (WIFEXITED(stat) == 0) {
+
+                } else if (WEXITSTATUS(stat) == 255) {
+                    printf(" %s does not exist \n", commands[i][0]);
+                } else {
+                    printf("ERROR: ERROR code: %d", WEXITSTATUS(stat));
+                }
+            }
+            f_in = fd[0];
+            if(i == arguments){
+                printf("\n \n");
+            }
         }
+        else{
+            dup2(f_in,0);
+
+            if(i != arguments){
+                dup2(fd[1],1);//write to pipe
+            }
+            close(fd[0]);
+            exit(execvp(commands[i][0], commands[i]));
+            return 0;
+        }
+
+        i++;
+
     }
-
-    return count;
-}
-
-int execute(char **args, int pipes){
-
-    if(args[0] == NULL){
-        // nothing on the command line
-        return 1;
-    }
-
-    else if(strncmp(args[0],"exit",4) == 0){
-        // execute exit command
-        return 0;
-    }
-
     return 1;
+
 }
 //int checkexe(const char* filename){
 //    char *symlinkpath = filename;
@@ -117,15 +156,12 @@ int execute(char **args, int pipes){
 int main(){
     char username[] = "cssc2165% ";
     char *input;
-    char **commands;
     int running;
-    int pipes;
+
     do{
         printf("%s", username);
         input = msh_read();
-        pipes = pipes_num(input);
-        commands = msh_tokenize_line(input);
-        running = execute(commands,pipes);
+        running = execute(msh_tokenize_line(input));
 
     }
     while (running);{
