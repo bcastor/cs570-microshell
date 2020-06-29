@@ -1,12 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/wait.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
 
 #define TOKEN_DELIM " \n\t"
+#define MAX 255
 
 char ***commands;
 int arguments = 0;
@@ -15,23 +17,25 @@ int arguments = 0;
  * reads user input and returns it as output
  * @return line
  */
-char *msh_read(void){
+char* msh_read(void){
 
-    char *line = NULL;
-    size_t buffsize = 0;
 
-    if(getline(&line, &buffsize, stdin) == 0){
-        if(feof(stdin)){
-            exit(EXIT_SUCCESS);//end of line
-        }
+    char line[MAX];
 
-        else{
-            perror(">> Input error!\n");
-            exit(EXIT_FAILURE);
-        }
+    fgets(line, MAX, stdin);
+
+    int len = strlen(line);
+    //replace new line with null pointer
+    if(line[strlen(line) - 1 == '\n']){
+
+        line[strlen(line) - 1] = '\0';
+
     }
 
-    return line;
+    char *str = malloc(len + 1);
+    //return copy of the input pointer
+    return strcpy(str, line);
+
 }
 
 
@@ -42,7 +46,7 @@ char *msh_read(void){
  * @param line
  * @return arguments
  */
-void msh_tokenize_line(char *line){
+void msh_tokenize_line(char* line){
     int i;
     int j;
     int k = 0;
@@ -76,6 +80,7 @@ void msh_tokenize_line(char *line){
             k++;
             token = strtok(NULL, TOKEN_DELIM);
         }
+
        else{//argument was found
            commands[arguments][k] = NULL;
            arguments++;
@@ -103,6 +108,15 @@ int execute(char ***commands){
     int fd[2];
     int stat;
     int f_in;
+    int j;
+
+    for(j = 0; j <= arguments; j++){
+
+        if(strcmp(commands[j][0],"exit") == 0){
+
+            return 0;
+        }
+    }
 
     while(i <= arguments){
 
@@ -119,7 +133,7 @@ int execute(char ***commands){
 
                 } else if (WEXITSTATUS(stat) == 255) {
                     printf(" %s does not exist \n", commands[i][0]);
-                    printf("ERROR CODE:: %d", WEXITSTATUS(stat));
+                    printf("ERROR CODE: %d", WEXITSTATUS(stat));
                 }
             }
             f_in = fd[0];
@@ -135,7 +149,7 @@ int execute(char ***commands){
             }
             close(fd[0]);
             exit(execvp(commands[i][0], *commands));
-            return 0;
+
         }
 
         i++;
