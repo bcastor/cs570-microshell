@@ -16,7 +16,7 @@
  * The only built in unix function availble is exit.
  */
 
-//change cs570A2 to just A2
+//change cs570A2 to just A2 for edoras
 #ifndef cs570A2_MAIN_H
 #define cs570A2_MAIN_H
 
@@ -29,11 +29,11 @@
 #include <unistd.h>
 
 
-#define TOKEN_DELIM " \n\t"
-#define MAX 255
+#define TOKEN_DELIM " \n\t"//token delimiters
+#define MAX 255 //max size for input
 
-char ***commands;
-int arguments = 0;
+char ***commands; //array for commands
+int arguments = 0;//number of arguments being passed
 
 /**
  * reads user input and returns it as output
